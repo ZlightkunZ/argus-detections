@@ -1,0 +1,31 @@
+title: Suspicious Certutil Download via LOLBIN
+id: d1c9b2a1-5f21-4d3e-9b62-123456789abc
+status: test
+description: Detects certutil.exe downloading remote payloads via URL cache flags (-urlcache, -split).
+references:
+    - https://attack.mitre.org/techniques/T1105/
+    - https://lolbas-project.github.io/lolbas/Binaries/Certutil/
+author: Your Name (@yourhandle)
+date: 2026-10-09
+tags:
+    - attack.ingress_tool_transfer
+    - attack.t1105
+    - attack.defense_evasion
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_proc:
+        Image|endswith: '\certutil.exe'
+        CommandLine|contains:
+            - ' -urlcache '
+            - ' /urlcache '
+    selection_download:
+        CommandLine|contains:
+            - 'http://'
+            - 'https://'
+            - 'ftp://'
+    condition: selection_proc and selection_download
+falsepositives:
+    - Legitimate administrative certificate revocation list updates (rarely include manual URLs)
+level: high

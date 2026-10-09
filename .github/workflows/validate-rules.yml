@@ -1,0 +1,37 @@
+name: Validate Detections
+
+on:
+  push:
+    branches: [ main ]
+  pull_request:
+    branches: [ main ]
+
+jobs:
+  validate-sigma:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Set up Python
+        uses: actions/setup-python@v5
+        with:
+          python-version: '3.11'
+          
+      - name: Install sigma-cli
+        run: pip install sigma-cli
+        
+      - name: Validate Sigma Rules
+        run: |
+          sigma check --validation-config default sigma/
+
+  validate-yara:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      
+      - name: Install YARA
+        run: sudo apt-get update && sudo apt-get install -y yara
+        
+      - name: Compile and Lint YARA Rules
+        run: |
+          find yara -name "*.yar" -exec yara -c {} \;
