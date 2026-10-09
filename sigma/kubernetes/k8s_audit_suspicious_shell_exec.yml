@@ -1,0 +1,30 @@
+title: Suspicious Kubernetes Pod Exec (Potential Container Escape)
+id: c8b92d61-34e8-4206-8d5f-1a9f3b5c6d7e
+status: experimental
+description: Detects suspicious execution of interactive shells (bash, sh, csh) inside a Kubernetes container via the K8s Audit Log. This is often a precursor to container escape or lateral movement.
+references:
+    - https://kubernetes.io/docs/tasks/debug/debug-application/debug-running-pod/
+    - https://attack.mitre.org/techniques/T1609/
+author: ZlightkunZ
+date: 2026-10-09
+tags:
+    - attack.execution
+    - attack.t1609
+logsource:
+    product: kubernetes
+    service: audit
+detection:
+    selection_api:
+        verb: 'create'
+        objectRef.resource: 'pods'
+        objectRef.subresource: 'exec'
+    selection_cmd:
+        requestURI|contains:
+            - 'command=bash'
+            - 'command=sh'
+            - 'command=/bin/sh'
+            - 'command=/bin/bash'
+    condition: selection_api and selection_cmd
+falsepositives:
+    - Legitimate cluster administrators debugging pods (Filter by known admin service accounts)
+level: high

@@ -1,0 +1,28 @@
+title: Unauthorized HuggingFace CLI Model Download (Shadow AI)
+id: f4b1c2a3-9d8e-7f6a-5b4c-3d2e1f0a9b8c
+status: experimental
+description: |
+    Detects the usage of the HuggingFace CLI to download models or datasets. 
+    In restricted enterprise environments, developers bypassing approved MLOps pipelines (Shadow AI) 
+    or adversaries downloading poisoned weights can introduce significant risk.
+references:
+    - https://huggingface.co/docs/huggingface_hub/guides/cli
+author: ZlightkunZ
+date: 2026-10-09
+tags:
+    - attack.exfiltration
+    - attack.t1567
+    - shadow_ai
+logsource:
+    category: process_creation
+    product: windows
+detection:
+    selection_img:
+        - Image|endswith: '\huggingface-cli.exe'
+        - OriginalFileName: 'huggingface-cli.exe'
+    selection_cli:
+        CommandLine|contains: ' download '
+    condition: selection_img and selection_cli
+falsepositives:
+    - Legitimate Data Scientists pulling authorized weights (Requires tuning via allowlists)
+level: medium

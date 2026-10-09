@@ -1,0 +1,30 @@
+title: Kerberoasting - Suspicious RC4 Ticket Request
+id: d7f03541-6169-42b4-9214-fc0b3806fb97
+status: stable
+description: |
+    Detects a service principal name (SPN) requesting a Kerberos Service Ticket (TGS) with RC4 encryption (0x17). 
+    Since RC4 is weak and easily crackable offline, attackers deliberately downgrade encryption during Kerberoasting.
+references:
+    - https://attack.mitre.org/techniques/T1558/003/
+    - https://specterops.io/wp-content/uploads/sites/3/2022/06/Kerberoasting-Without-Mimikatz-2.pdf
+author: ZlightkunZ
+date: 2026-10-09
+tags:
+    - attack.credential_access
+    - attack.t1558.003
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4769
+        TicketOptions: '0x40810000' # Request for forwardable, renewable ticket
+        TicketEncryptionType: '0x17' # RC4-HMAC
+    filter_machine_accounts:
+        ServiceName|endswith: '$' # Ignore computer accounts, focus on user accounts with SPNs
+    filter_krbtgt:
+        ServiceName: 'krbtgt'
+    condition: selection and not (filter_machine_accounts or filter_krbtgt)
+falsepositives:
+    - Legacy applications specifically hardcoded to use RC4 (Requires modernization/tuning)
+level: high

@@ -1,0 +1,33 @@
+title: Active Directory DCSync Attack Detection
+id: 59a1f28b-b892-4916-9b16-563b7e7c8449
+status: stable
+description: |
+    Detects directory replication activities (DCSync) originating from non-Domain Controller IP addresses. 
+    Adversaries (e.g., using Mimikatz) use this to request password hashes from the AD database.
+references:
+    - https://adsecurity.org/?p=1729
+    - https://attack.mitre.org/techniques/T1003/006/
+author: ZlightkunZ
+date: 2026-10-09
+tags:
+    - attack.credential_access
+    - attack.t1003.006
+logsource:
+    product: windows
+    service: security
+detection:
+    selection:
+        EventID: 4662
+        ObjectType: '19195a5b-6da0-11d0-afd3-00c04fd930c9' # domainDNS
+        Properties|contains:
+            - '1131f6aa-9c07-11d1-f79f-00c04fc2dcd2' # DS-Replication-Get-Changes
+            - '1131f6ad-9c07-11d1-f79f-00c04fc2dcd2' # DS-Replication-Get-Changes-All
+    filter_domain_controllers:
+        # Exclude legitimate Domain Controllers (must be tuned to environment subnets/names)
+        SubjectUserName|endswith: '$'
+        SubjectLogonId: '0x3e7'
+    condition: selection and not filter_domain_controllers
+falsepositives:
+    - Azure AD Connect servers (Requires whitelisting)
+    - Legitimate third-party AD backup tools
+level: critical

@@ -17,12 +17,15 @@ jobs:
         with:
           python-version: '3.11'
           
-      - name: Install sigma-cli
-        run: pip install sigma-cli
+      - name: Install dependencies
+        run: pip install sigma-cli yamllint
         
-      - name: Validate Sigma Rules
+      - name: Lint YAML Schema
+        run: yamllint -d "{extends: relaxed, rules: {line-length: disable}}" sigma/
+        
+      - name: Validate Sigma Rules Strict
         run: |
-          sigma check --validation-config default sigma/
+          sigma check --validation-config default --fail-on-error sigma/
 
   validate-yara:
     runs-on: ubuntu-latest
@@ -32,6 +35,6 @@ jobs:
       - name: Install YARA
         run: sudo apt-get update && sudo apt-get install -y yara
         
-      - name: Compile and Lint YARA Rules
+      - name: Compile and Lint YARA Rules Strict
         run: |
-          find yara -name "*.yar" -exec yara -c {} \;
+          find yara -name "*.yar" -exec yara -w -s {} \;

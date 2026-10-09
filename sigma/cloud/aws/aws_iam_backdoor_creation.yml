@@ -1,0 +1,26 @@
+title: AWS IAM Backdoor User Creation via CloudTrail
+id: e24a9c4a-6d12-4c28-98e3-b3c1d4e5f6a7
+status: stable
+description: Detects the creation of a new AWS IAM user followed by the immediate generation of access keys, a common persistence mechanism used by compromised cloud accounts.
+references:
+    - https://attack.mitre.org/techniques/T1098/
+    - https://docs.aws.amazon.com/awscloudtrail/latest/userguide/cloudtrail-event-reference-aws-console-sign-in.html
+author: ZlightkunZ
+date: 2026-10-09
+tags:
+    - attack.persistence
+    - attack.t1098
+logsource:
+    product: aws
+    service: cloudtrail
+detection:
+    selection_create:
+        eventName: 'CreateUser'
+        eventSource: 'iam.amazonaws.com'
+    selection_key:
+        eventName: 'CreateAccessKey'
+        eventSource: 'iam.amazonaws.com'
+    condition: selection_create or selection_key # Note: In SIEM, this would be a correlated time-window sequence
+falsepositives:
+    - Automated Terraform/IaaC provisioning pipelines (Whitelist CI/CD roles)
+level: critical
